@@ -35,7 +35,8 @@ You can now run the application by entering `./CoreDirectivesGenerator` in your 
 
 1. Enter the image path of your source image and press enter.
 2. Enter the image path of your recolored image and press enter.
-3. Paste the directives from your clipboard somewhere using <kbd>Ctrl + V</kbd> or <kbd>⌘ + V</kbd>.
+3. Paste the generated directives from your clipboard somewhere using <kbd>Ctrl + V</kbd> or <kbd>⌘ + V</kbd>.
+  * Depending on your image size, it may take a moment before the directives are generated.
 
 To quit the application, either enter `quit` or kill the process using <kbd>Ctrl + C</kbd>.
 
