@@ -11,6 +11,21 @@ namespace CoreDirectivesGenerator
     {
         static void Main(string[] args)
         {
+            string outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "output");
+
+            if (!Directory.Exists(outputPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(outputPath);
+                }
+                catch (Exception e)
+                {
+                    WaitAndExit("Couldn't create output directory. Exception: {0}", e.ToString());
+                    return;
+                }
+            }
+
             if (args.Length != 0)
             {
                 WaitAndExit("Please run the Directives Generator without any arguments.");
@@ -20,40 +35,71 @@ namespace CoreDirectivesGenerator
             bool running = true;
             while (running)
             {
+                WriteColoredLine(ConsoleColor.Cyan, "= Directives Generator (\"quit\" to exit)");
+
+                // Get first image
                 Console.WriteLine("First image path:");
-                string firstPath = Console.ReadLine();
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                string firstPath = Console.ReadLine().Trim();
+                Console.ResetColor();
 
                 if (firstPath == "quit" || firstPath == "exit")
-                {
                     Environment.Exit(0);
-                }
 
+                // Get second image
                 Console.WriteLine("Second image path:");
-                string secondPath = Console.ReadLine();
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                string secondPath = Console.ReadLine().Trim();
+                Console.ResetColor();
 
                 if (secondPath == "quit" || secondPath == "exit")
                     Environment.Exit(0);
-                
+
+                // Compare
                 string directives = Compare(firstPath, secondPath);
                 if (directives != null)
                 {
-                    SetClipboard(directives);
-                    Console.WriteLine("Compared '{0}' to '{1}'. Directives copied to clipboard.", secondPath, firstPath);
-                }
-            }
+                    // Save valid results
+                    string file = string.Format("{0}-{1}-{2}.txt",
+                        Path.GetFileNameWithoutExtension(firstPath),
+                        Path.GetFileNameWithoutExtension(secondPath),
+                        DateTime.Now.ToString("HHmmss"));
 
-            using (FileStream stream = File.OpenRead(args[0]))
-            using (Image<Rgba32> image = Image.Load<Rgba32>(stream))
-            {
-                for (int y = 0; y < image.Height; y++)
-                {
-                    for (int x = 0; x < image.Width; x++)
-                    {
-                        Rgba32 rgba = image[x, y];
-                        Console.WriteLine(rgba.ToString());
-                    }
+                    string path = Path.Combine(outputPath, file);
+
+                    Save(path, directives, true);
+
+                    Console.WriteLine("Directives saved and copied to clipboard!");
+                    WriteColoredLine(ConsoleColor.DarkGray, Path.GetFullPath(path));
                 }
+
+                Console.WriteLine();
             }
+        }
+
+        /// <summary>
+        /// Writes colored text, while keeping the original ForegroundColor.
+        /// </summary>
+        /// <param name="fg">Text color.</param>
+        /// <param name="text">Text to write.</param>
+        /// <param name="args">Format arguments.</param>
+        static void WriteColored(ConsoleColor fg, string text, params object[] args)
+        {
+            ConsoleColor ofg = Console.ForegroundColor;
+            Console.ForegroundColor = fg;
+            Console.Write(text, args);
+            Console.ForegroundColor = ofg;
+        }
+
+        /// <summary>
+        /// Writes a colored line, while keeping the original ForegroundColor.
+        /// </summary>
+        /// <param name="fg">Text color.</param>
+        /// <param name="text">Text to write.</param>
+        /// <param name="args">Format arguments.</param>
+        static void WriteColoredLine(ConsoleColor fg, string text, params object[] args)
+        {
+            WriteColored(fg, text + Environment.NewLine, args);
         }
 
         /// <summary>
@@ -105,7 +151,7 @@ namespace CoreDirectivesGenerator
             }
             catch (Exception e)
             {
-                Console.Write("Comparing failed! Exception:" + Environment.NewLine + e.ToString() + Environment.NewLine);
+                WriteColoredLine(ConsoleColor.Red, "Comparing failed! Exception: {0}{1}", Environment.NewLine, e.ToString());
                 return null;
             }
         }
@@ -126,33 +172,34 @@ namespace CoreDirectivesGenerator
         }
 
         /// <summary>
-        /// Copies text to the clipboard, by first writing it to a temporary file.
+        /// Saves text to a file, and optionally copies the text to the clipboard.
         /// </summary>
+        /// <param name="fileName">File name.</param>
         /// <param name="text">Text to copy.</param>
-        static void SetClipboard(string text)
+        /// <param name="copy">Copy to clipboard as well?</param>
+        static void Save(string fileName, string text, bool copy = true)
         {
-            string tempFile = Path.GetTempFileName();
             try
             {
-                File.WriteAllText(tempFile, text);
+                File.WriteAllText(fileName, text);
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    $"type {tempFile} | clip".Bat();
+                    $"type {fileName} | clip".Bat();
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    $"cat \"{tempFile}\" | pbcopy".Bash();
+                    $"cat \"{fileName}\" | pbcopy".Bash();
                 }
                 else
                 {
-                    Console.WriteLine("Your OS doesn't support copying to clipboard natively!");
+                    WriteColoredLine(ConsoleColor.Red, "Your OS doesn't support copying to clipboard natively!");
                     Console.WriteLine(text);
                 }
             }
-            finally
+            catch (Exception e)
             {
-                File.Delete(tempFile);
+                WriteColoredLine(ConsoleColor.Red, "Copying to clipboard failed! Exception: {0}", e.ToString());
             }
         }
 
@@ -168,7 +215,7 @@ namespace CoreDirectivesGenerator
                 Console.WriteLine(message, args);
             }
 
-            Console.WriteLine("Press any key to exit...");
+            WriteColoredLine(ConsoleColor.Cyan, "Press any key to exit...");
             Console.ReadKey();
             Environment.Exit(0);
         }
