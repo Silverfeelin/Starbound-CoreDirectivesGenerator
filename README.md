@@ -29,6 +29,16 @@ You can now run the application simply by opening `CoreDirectivesGenerator.exe`.
 
 You can now run the application by entering `./CoreDirectivesGenerator` in your terminal (make sure you open your terminal from inside the application folder).
 
+## Usage
+
+> Note that you can drag an image file directly on top of the console to get the image path!
+
+1. Enter the image path of your source image and press enter.
+2. Enter the image path of your target image and press enter.
+3. Paste the directives from your clipboard somewhere using <kbd>Ctrl + V</kbd> or <kbd>⌘ + V</kbd>.
+
+To quit the application, either enter `quit` or kill the process using <kbd>Ctrl + C</kbd>.
+
 ## ImageSharp
 
 This project is powered by ImageSharp, a cross-platform library for working with images:
