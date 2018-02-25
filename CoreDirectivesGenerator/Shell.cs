@@ -8,23 +8,23 @@ namespace CoreDirectivesGenerator
     /// </summary>
     public static class Shell
     {
-        public static string Bash(this string cmd)
+        public static ProcessResult Bash(this string cmd)
         {
             var escapedArgs = cmd.Replace("\"", "\\\"");
-            string result = Run("/bin/bash", $"-c \"{escapedArgs}\"");
-            return result;
+            return Run("/bin/bash", $"-c \"{escapedArgs}\"");
         }
 
-        public static string Bat(this string cmd)
+        public static ProcessResult Bat(this string cmd)
         {
             var escapedArgs = cmd.Replace("\"", "\\\"");
-            string result = Run("cmd.exe", $"/c \"{escapedArgs}\"");
-            return result;
+            return Run("cmd.exe", $"/c \"{escapedArgs}\"");
         }
 
-        private static string Run(string filename, string arguments)
+        private static ProcessResult Run(string filename, string arguments)
         {
-            var process = new Process()
+            var result = new ProcessResult();
+
+            var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -36,9 +36,20 @@ namespace CoreDirectivesGenerator
                 }
             };
             process.Start();
-            string result = process.StandardOutput.ReadToEnd();
+            result.StdOut = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
+            result.ExitCode = process.ExitCode;
+
             return result;
+        }
+    }
+
+    public class ProcessResult {
+        public string StdOut { get; set; }
+        public int? ExitCode { get; set; }
+
+        public bool WasSuccessful() {
+            return ExitCode == 0;
         }
     }
 }

@@ -191,6 +191,27 @@ namespace CoreDirectivesGenerator
                 {
                     $"cat \"{fileName}\" | pbcopy".Bash();
                 }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    if (LinuxCommandExists("xsel"))
+                    {
+                        $"cat \"{fileName}\" | xsel --input --clipboard".Bash();
+                    }
+                    else if (LinuxCommandExists("xclip"))
+                    {
+                        $"cat \"{fileName}\" | xclip -selection clipboard".Bash();
+                    }
+                    else
+                    {
+                        Console.WriteLine(
+                            "We only support clipboard usage on Linux with the 'xsel' or 'xclip'"
+                            + " commands.  Please look into installing one of them via your"
+                            + "package manager or filing a github issue with a request to support"
+                            + "an alternative program."
+                        );
+                        Console.WriteLine(text);
+                    }
+                }
                 else
                 {
                     WriteColoredLine(ConsoleColor.Red, "Your OS doesn't support copying to clipboard natively!");
@@ -218,6 +239,15 @@ namespace CoreDirectivesGenerator
             WriteColoredLine(ConsoleColor.Cyan, "Press any key to exit...");
             Console.ReadKey();
             Environment.Exit(0);
+        }
+
+        /// <summary>
+        /// Tests whether a linux command exists.
+        /// </summary>
+        /// <param name="commandName">The name of the command.</param>
+        static bool LinuxCommandExists(string commandName)
+        {
+            return $"command -v {commandName}".Bash().WasSuccessful();
         }
     }
 }
