@@ -21,7 +21,7 @@ namespace CoreDirectivesGenerator
                 }
                 catch (Exception e)
                 {
-                    WaitAndExit("Couldn't create output directory. Exception: {0}", e.ToString());
+                    WaitAndExit("Failed to create an output directory! Exception: {0}", e.ToString());
                     return;
                 }
             }
@@ -38,18 +38,18 @@ namespace CoreDirectivesGenerator
                 WriteColoredLine(ConsoleColor.Cyan, "= Directives Generator (\"quit\" to exit)");
 
                 // Get first image
-                Console.WriteLine("First image path:");
+                Console.WriteLine("Enter first image path:");
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                string firstPath = Console.ReadLine().Trim();
+                string firstPath = Console.ReadLine().Trim().Replace("\"", "").Replace("'", "");
                 Console.ResetColor();
 
                 if (firstPath == "quit" || firstPath == "exit")
                     Environment.Exit(0);
 
                 // Get second image
-                Console.WriteLine("Second image path:");
+                Console.WriteLine("Enter second image path:");
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                string secondPath = Console.ReadLine().Trim();
+                string secondPath = Console.ReadLine().Trim().Replace("\"", "").Replace("'", "");
                 Console.ResetColor();
 
                 if (secondPath == "quit" || secondPath == "exit")
