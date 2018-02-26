@@ -10,17 +10,25 @@ namespace CoreDirectivesGenerator
     {
         public static ProcessResult Bash(this string cmd)
         {
+            return Bash(cmd, new ProcessOptions());
+        }
+        public static ProcessResult Bash(this string cmd, ProcessOptions opts)
+        {
             var escapedArgs = cmd.Replace("\"", "\\\"");
-            return Run("/bin/bash", $"-c \"{escapedArgs}\"");
+            return Run("/bin/bash", $"-c \"{escapedArgs}\"", opts);
         }
 
         public static ProcessResult Bat(this string cmd)
         {
+            return Bat(cmd, new ProcessOptions());
+        }
+        public static ProcessResult Bat(this string cmd, ProcessOptions opts)
+        {
             var escapedArgs = cmd.Replace("\"", "\\\"");
-            return Run("cmd.exe", $"/c \"{escapedArgs}\"");
+            return Run("cmd.exe", $"/c \"{escapedArgs}\"", opts);
         }
 
-        private static ProcessResult Run(string filename, string arguments)
+        private static ProcessResult Run(string filename, string arguments, ProcessOptions opts)
         {
             var result = new ProcessResult();
 
@@ -30,13 +38,18 @@ namespace CoreDirectivesGenerator
                 {
                     FileName = filename,
                     Arguments = arguments,
-                    RedirectStandardOutput = true,
+                    RedirectStandardOutput = opts.ShouldRedirectStdOut,
                     UseShellExecute = false,
                     CreateNoWindow = false,
                 }
             };
             process.Start();
-            result.StdOut = process.StandardOutput.ReadToEnd();
+
+            if (process.StartInfo.RedirectStandardOutput)
+            {
+                result.StdOut = process.StandardOutput.ReadToEnd();
+            }
+            
             process.WaitForExit();
             result.ExitCode = process.ExitCode;
 
@@ -51,5 +64,9 @@ namespace CoreDirectivesGenerator
         public bool WasSuccessful() {
             return ExitCode == 0;
         }
+    }
+
+    public class ProcessOptions {
+        public bool ShouldRedirectStdOut { get; set; } = true;
     }
 }
