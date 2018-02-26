@@ -199,7 +199,12 @@ namespace CoreDirectivesGenerator
                     }
                     else if (LinuxCommandExists("xclip"))
                     {
-                        $"cat \"{fileName}\" | xclip -selection clipboard".Bash();
+                        // xclip hangs on ubuntu with stdout redirect for some reason
+                        ProcessOptions opts = new ProcessOptions
+                        {
+                            ShouldRedirectStdOut = false
+                        };
+                        $"cat \"{fileName}\" | xclip -selection clipboard".Bash(opts);
                     }
                     else
                     {
